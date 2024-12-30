@@ -1,0 +1,61 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package GajiServer;
+
+import java.rmi.server.UnicastRemoteObject;
+import java.rmi.RemoteException;
+
+/**
+ *
+ * @author ASUS
+ */
+public class Services extends UnicastRemoteObject implements OprationRMI {
+    protected Services() throws RemoteException {
+        super();
+    }
+
+    @Override
+   public double hitungGaji(double gajiPokok, boolean tunjanganTetap, boolean makanHarian, boolean transportasi,
+                         double totalJamLembur, double bonusTahunan, boolean potonganPajak, boolean potonganBPJS,
+                         double pinjaman, double dendaKeterlambatanDalamMenit) throws RemoteException {
+    // Tunjangan tetap
+    double tunjanganTetapValue = tunjanganTetap ? gajiPokok * 0.25 : 0;
+
+    // Tunjangan tidak tetap
+    double tunjanganTidakTetap = 0;
+    if (makanHarian) {
+    tunjanganTidakTetap = gajiPokok * 0.25;
+    }
+    if (transportasi) {
+        tunjanganTidakTetap = 50000 * 22;
+    }
+
+    // Bonus kinerja berdasarkan jam lembur
+    double bonusKinerja = 0;
+    if (totalJamLembur > 2) {
+        // 2 jam lembur pertama
+        bonusKinerja += 2 * 1.5 * (1.0 / 173) * gajiPokok;
+        // Sisa jam lembur selanjutnya
+        double jamLemburSelanjutnya = totalJamLembur - 2;
+        bonusKinerja += jamLemburSelanjutnya * 2 * (1.0 / 173) * gajiPokok;
+    } else {
+        // Semua jam lembur dihitung sebagai lembur jam pertama
+        bonusKinerja += totalJamLembur * 1.5 * (1.0 / 173) * gajiPokok;
+    }
+
+    // Potongan (pajak dan BPJS)
+    double totalPotongan = 0;
+    if (potonganPajak) totalPotongan += gajiPokok * 0.11;
+    if (potonganBPJS) totalPotongan += gajiPokok * 0.02;
+
+    // Denda keterlambatan
+    double denda = (dendaKeterlambatanDalamMenit / 60) * (gajiPokok * 0.005);
+
+    // Total gaji
+    return gajiPokok + tunjanganTetapValue + tunjanganTidakTetap +
+           bonusKinerja + bonusTahunan - totalPotongan - pinjaman - denda;
+}
+
+}
